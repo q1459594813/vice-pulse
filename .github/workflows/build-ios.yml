@@ -8,26 +8,30 @@ on:
 jobs:
   build:
     name: Build Native iOS App on Cloud Mac
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+      - name: Select Xcode 16.4
+        run: |
+          sudo xcode-select -switch /Applications/Xcode_16.4.app/Contents/Developer
+          xcodebuild -version
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: |
+          brew install xcodegen
+          xcodegen --version
 
       - name: Generate Xcode Project
-        run: |
-          cd ios
-          xcodegen generate
+        working-directory: ios
+        run: xcodegen generate
 
       - name: Build iOS Application (.app)
+        working-directory: ios
         run: |
-          cd ios
+          mkdir -p build
           xcodebuild build \
             -project VicePulse.xcodeproj \
             -scheme VicePulse \
@@ -36,13 +40,14 @@ jobs:
             -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CONFIGURATION_BUILD_DIR=./build
+            ONLY_ACTIVE_ARCH=NO \
+            CONFIGURATION_BUILD_DIR="$GITHUB_WORKSPACE/ios/build"
 
       - name: Package into .ipa
+        working-directory: ios/build
         run: |
-          cd ios/build
           mkdir -p Payload
-          cp -r VicePulse.app Payload/
+          cp -R VicePulse.app Payload/
           zip -r VicePulse.ipa Payload
 
       - name: Upload IPA Artifact
