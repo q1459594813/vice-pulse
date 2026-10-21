@@ -1,0 +1,16 @@
+# Build outputs
+.build/
+build/
+ios/build/
+*.ipa
+*.app
+
+# Sensitive configurations
+clash/config.yaml
+clash/*.log
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
